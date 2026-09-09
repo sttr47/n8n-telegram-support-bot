@@ -1,0 +1,647 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f037b56f-49a0-47f1-8706-883c7a5c2627",
+      "name": "Telegram Trigger",
+      "webhookId": "0d116154-a066-4b0c-8495-6595e3e060ce",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoeqwqistre8qOk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gemma4:e4b\",\n  \"prompt\": \"Classify the intent of the following user message into one of these categories: 'billing', 'sales', 'technical', 'weather', or 'other'. Use 'weather' when the user asks about weather, temperature, or forecast. If it fits none, use 'other'. Respond ONLY with a valid JSON object containing a 'category' key. User message: {{ $json.message.text }}\",\n  \"stream\": false,\n  \"format\": \"json\"\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "11a3400f-fc0e-45ed-a1a7-46fd5cd4f4da",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code in JavaScript').item.json.category }}",
+                    "rightValue": "billing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "24bef3c5-cc46-4df6-abe9-f549f3a9e514"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "58f141d6-91fb-40ff-bdb0-835b1a4b0cd6",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.category }}",
+                    "rightValue": "sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3a60145b-e633-4446-a9e0-eb2b876fd88e",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.category }}",
+                    "rightValue": "technical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5ef58ff0-921c-43d9-8630-c149af0a9775",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.category }}",
+                    "rightValue": "weather",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "a81992ed-f803-40e9-9fb0-8b077f368235",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appCtiDbzzHd5jqhC",
+          "mode": "list",
+          "cachedResultName": "logs",
+          "cachedResultUrl": "https://airtable.com/appCtiDbzzHd5jqhC"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl7WkFlladhTNihk",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appCtiDbzzHd5jqhC/tbl7WkFlladhTNihk"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toISO() }}",
+            "User": "={{ $('Telegram Trigger').item.json.message.from.username }}",
+            "Category": "={{ $('Code in JavaScript').item.json.category }}",
+            "Message": "={{ $('Telegram Trigger').item.json.message.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "cdc175c6-3d83-482f-8280-ea625af51e95",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Q3CqE7NjIOOAW3qn",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Thanks for reaching out about a billing issue. Our billing team will review your request and get back to you shortly.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1504,
+        -160
+      ],
+      "id": "ee297601-0fa9-4626-961b-89903d610259",
+      "name": "Send a text message",
+      "webhookId": "2a652879-6c52-470f-bb3f-f5acfe6a3036",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoeqwqistre8qOk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Thanks for your interest! Our sales team will contact you soon with the details you need.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1584,
+        -16
+      ],
+      "id": "9817b2eb-98ba-4f3f-8d42-ffc10526a00f",
+      "name": "Send a text message1",
+      "webhookId": "cf2dab8b-fbe3-45c5-80f3-953c9582e589",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoeqwqistre8qOk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Thanks for reporting a technical issue. Our support team will look into it and assist you as soon as possible.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1536,
+        160
+      ],
+      "id": "0caebcfc-e197-413e-b517-d28326050f04",
+      "name": "Send a text message2",
+      "webhookId": "b1bc229b-8ccf-4aa7-a757-55ca08d33b7f",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoeqwqistre8qOk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "69f9f5fc-bf66-43db-b2c8-5bb7992a41c5",
+              "leftValue": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "f8484b0b-e342-43cc-a0a5-4cdab3116c8b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Please send a text message describing your issue so I can help.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        224
+      ],
+      "id": "d141c3fc-6ce0-40fb-987b-0b76a14a5cad",
+      "name": "Send a text message3",
+      "webhookId": "c8ba963d-7fa7-40d0-8ba0-3113a5f03b9d",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoeqwqistre8qOk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "I couldn't confidently categorize your request. A support agent will review it and get back to you shortly.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        304
+      ],
+      "id": "753a1098-4f80-4ecb-a9c5-e6ed4628eaa7",
+      "name": "Send a text message4",
+      "webhookId": "2c1b7fb5-024e-49a9-9e15-792c7178975a",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoeqwqistre8qOk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Our AI assistant is temporarily unavailable. Please try again in a few moments.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        224
+      ],
+      "id": "23749222-9178-4e8a-aabc-9af221260481",
+      "name": "Send a text message5",
+      "webhookId": "cf622b7f-e4b8-413a-a9c9-5f7eb9cc7b40",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoeqwqistre8qOk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const allowed = ['billing', 'sales', 'technical', 'weather'];\n\nlet category = 'fallback';\ntry {\n  const raw = $json.response;               \n  const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;\n  const c = (parsed.category || '').toLowerCase().trim();\n  if (allowed.includes(c)) {\n    category = c;\n  }\n} catch (e) {\n  category = 'fallback';                     \n}\n\nreturn { category };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "bc813695-c07f-4b9b-88ba-ada370fa4361",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=40.41&longitude=49.87&current=temperature_2m",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1600,
+        368
+      ],
+      "id": "bb41df07-815e-45d0-9fcd-3570e1dfc9bd",
+      "name": "HTTP Request1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Current weather in Baku: {{ $json.current.temperature_2m }}°C",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1824,
+        272
+      ],
+      "id": "99cc1f6b-f93a-4ffa-8322-2ef9442159a6",
+      "name": "Send a text message6",
+      "webhookId": "7f4b6643-c1f3-4f4f-b8d0-71b2bc374afb",
+      "credentials": {
+        "telegramApi": {
+          "id": "txoeqwqistre8qOk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Sends the message to a local Ollama model (gemma4:e4b) at http://host.docker.internal:11434/api/chat.",
+        "height": 144
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -176
+      ],
+      "id": "067a8e63-ef9c-4ab0-81db-915dbb570425",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "The Code node pulls the category value out of the AI's JSON reply. The Switch node then sends the message down one of 4 category branches, or to a fallback branch if the category doesn't match.",
+        "height": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        -240
+      ],
+      "id": "3822366e-fa24-48c3-a58b-3fae33d7dcfd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Handles empty messages, bad or non-JSON AI replies, and cases where Ollama is offline or still loading the model. Instead of crashing, the user gets a polite \"please try again\" reply.",
+        "height": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        368,
+        384
+      ],
+      "id": "f4bfba05-5b44-440e-9145-9e856d9fbdc6",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "95bcd430-484f-4e7e-848a-71362b6ad38c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "edaf2e94103efc64acfbcd30b0d210a917be4c4eb5158212b7d7cf18f2212393"
+  },
+  "nodeGroups": [],
+  "id": "hL5M1B4fy32YMK9y",
+  "tags": []
+}
